@@ -29,7 +29,7 @@ def erro_GamaConstante(h):
            cometida pelo Metodo Gama Constante
     '''
 
-    return ((h**2)*((1/np.e)+1)*(1/3)+h)*(np.e-1)
+    return ((h**2)*((1/np.e))*(1/3)+h)*(np.e-1)
 
 def Simpson(vetor_x,h):
     '''
