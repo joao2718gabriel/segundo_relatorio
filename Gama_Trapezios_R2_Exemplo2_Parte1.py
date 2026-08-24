@@ -1,9 +1,5 @@
 import numpy as np
 
-def f(x1,x2):
-
-    return (np.e**(x1))*(np.e**(x2))
-
 def Delta(x1):
 
     num1=np.e**(4*x1)
@@ -20,17 +16,6 @@ def Psi1(x1):
 
 def delta(x1):
     return x1-x1/2
-
-
-def ordem_convergencia(erro_n,erro_2n):
-    '''
-           Essa funcao calcula a ordem
-           de convergencia
-    '''
-
-
-    return abs(np.log(erro_n/erro_2n)/np.log(2))
-
 
 def gerar_tabela(erros, valores_aproximados):
     n = len(erros)
