@@ -114,63 +114,172 @@ def g(x,a,b):
 
     return np.log((f(x)-b)/a)
 
+
 def main(n):
-    '''
-               Essa funcao plota os graficos
-               de P(x) e f(x)
-    '''
+    """
+    Essa funcao plota os graficos de P(x), f(x) e h(x) destacando os
+    erros em alguns pontos
+    """
     # Intervalo c,d
-    c,d=-5,5 #Para o exemplo 1
-    #c,d=-5,10 #Para o exemplo 2
-    #c,d=-10,10 #Para o exemplo 3
-    a=1
-    vetor_x=[] #[x0,x1,...,xn]
-    h=(d-c)/n
-    for i in range(n+1):
-        xi=c+i*h
-        vetor_x.append(xi)
-    vetor_x=np.array(vetor_x)
-    vetor_f=f(vetor_x)
+    #c, d = -5, 5  # Exemplo 1 (descomente conforme o exemplo)
+    #c,d=-5,10 # Exemplo 2
+    c,d=-10,10 # Exemplo 3
 
-    #Infimo de f
-    inf_f=1/26 #Para o exemplo 1
-    #inf_f=1/np.e #Para o exemplo 2
-    #inf_f=0 #Para o exemplo 3
-    b_otimo=Otimizando_b(vetor_x,vetor_f,inf_f,a)
-    vetor_g = g(vetor_x, a, b_otimo)  # [g(x0),g(x1),...,g(xn)]
+    a = 1
+    vetor_x = np.linspace(c, d, n + 1)
+    vetor_f = f(vetor_x)
+
+    # Ínfimo de f
+    #inf_f = 1 / 26  # Exemplo 1
+    #inf_f = 1/np.e # Exemplo 2
+    inf_f = 0 # Exemplo 3
+
+    b_otimo = Otimizando_b(vetor_x, vetor_f, inf_f, a)
+    vetor_g = g(vetor_x, a, b_otimo)
+
     diagonal_pg = coeficientes(vetor_x, vetor_g)
+    diagonal_p = coeficientes(vetor_x, vetor_f)
 
+    # Malha contínua para plotagem
+    m = 10000
+    pontosx_paraPlotar = np.linspace(c, d, m + 1)
+    pontosf_paraPlotar = f(pontosx_paraPlotar)
 
+    pontosP_paraPlotar = np.array(
+        [
+            constroiPolinomio(xi, vetor_x, vetor_f, diagonal_p)
+            for xi in pontosx_paraPlotar
+        ]
+    )
+    px_g_all = np.array(
+        [
+            constroiPolinomio(xi, vetor_x, vetor_g, diagonal_pg)
+            for xi in pontosx_paraPlotar
+        ]
+    )
+    pontos_h_paraPlotar = a * np.exp(px_g_all) + b_otimo
 
-    diagonal_p = coeficientes(vetor_x, vetor_f)  # Vetor dos coeficientes [a0,a1,...,an] do polinomio interpolador p
-    pontosx_paraPlotar = []  # Esse e o vetor de pontos x para plotar os graficos
-    pontosf_paraPlotar = []  # Esse e o vetor de pontos f(x) para plotar os graficos
-    pontosP_paraPlotar = []  # Esse e o vetor de pontos p_5(x) para plotar os graficos
-    pontos_h_paraPlotar = []  # Esse e o vetor de pontos h(x) para plotar os graficos
-    m = 10000  # numero de pontos para plotar os graficos
-    delta = (d-c) / m  # (5-(-5))/m
-    for i in range(10001):
-        xi = c + i * delta
-        pontosx_paraPlotar.append(xi)
+    # ---------------------------------------------------------
+    # Cálculo das diferenças nos 3 pontos de interesse
+    # ---------------------------------------------------------
+    x_primeiros = (vetor_x[0] + vetor_x[1]) / 2.0
+    x_centro = (c + d) / 2.0
+    x_ultimos = (vetor_x[-2] + vetor_x[-1]) / 2.0
 
-        # Construindo polinomio p
-        px = constroiPolinomio(xi, vetor_x, vetor_f, diagonal_p)
-        pontosP_paraPlotar.append(px)
+    pontos_interesse = {
+        "Início": x_primeiros,
+        "Centro": x_centro,
+        "Fim": x_ultimos,
+    }
 
-        # Construindo a funcao h
-        px_g = constroiPolinomio(xi, vetor_x, vetor_g, diagonal_pg)
-        pontos_h_paraPlotar.append(a*np.e ** (px_g) + b_otimo)
+    fig, ax = plt.subplots(figsize=(12, 7.5))
 
-        # Construindo a funcao f
-        pontosf_paraPlotar.append(f(xi))
+    ax.plot(
+        pontosx_paraPlotar,
+        pontosf_paraPlotar,
+        label="f(x)",
+        color="red",
+        linewidth=1.5,
+    )
+    ax.plot(
+        pontosx_paraPlotar,
+        pontosP_paraPlotar,
+        label="p(x)",
+        color="blue",
+        linewidth=1.5,
+    )
+    ax.plot(
+        pontosx_paraPlotar,
+        pontos_h_paraPlotar,
+        label="h(x)",
+        color="green",
+        linewidth=1.5,
+    )
 
-    # Plotando os graficos
-    plt.plot(pontosx_paraPlotar, pontosf_paraPlotar, label="f(x)", color="red")
-    plt.plot(pontosx_paraPlotar, pontosP_paraPlotar, label="p(x)", color="blue")
-    plt.plot(pontosx_paraPlotar, pontos_h_paraPlotar, label="h(x)", color="green")
-    plt.legend()
-    plt.title(f"Interpolação por Exponencial com b*={b_otimo:.5f} e n={n}")
-    plt.grid(True)
+    estilos = {
+        "Início": "purple",
+        "Centro": "darkorange",
+        "Fim": "brown",
+    }
+
+    # Calcula amplitude vertical total para criar margem segura no topo
+    y_min = min(
+        min(pontosf_paraPlotar),
+        min(pontosP_paraPlotar),
+        min(pontos_h_paraPlotar),
+    )
+    y_max = max(
+        max(pontosf_paraPlotar),
+        max(pontosP_paraPlotar),
+        max(pontos_h_paraPlotar),
+    )
+    amplitude_y = y_max - y_min
+
+    # Define o limite do eixo Y com folga extra para os balões de texto
+    ax.set_ylim(y_min - 0.1 * amplitude_y, y_max + 0.8 * amplitude_y)
+
+    for rotulo, x_eval in pontos_interesse.items():
+        y_f = f(x_eval)
+        y_p = constroiPolinomio(x_eval, vetor_x, vetor_f, diagonal_p)
+        y_g = constroiPolinomio(x_eval, vetor_x, vetor_g, diagonal_pg)
+        y_h = a * np.exp(y_g) + b_otimo
+
+        diff_hf = abs(y_h - y_f)
+        diff_hp = abs(y_h - y_p)
+        diff_pf = abs(y_p - y_f)
+
+        cor = estilos[rotulo]
+
+        # Linha vertical indicadora do ponto de amostragem
+        ax.axvline(
+            x=x_eval,
+            color=cor,
+            linestyle="--",
+            alpha=0.6,
+            label=f"Ponto {rotulo} (x={x_eval:.2f})",
+        )
+
+        # Marcadores nos pontos
+        ax.scatter([x_eval] * 3, [y_f, y_p, y_h], color=cor, s=35, zorder=5)
+
+        texto_diff = (
+            f"[{rotulo}]\n"
+            f"|h-f| = {diff_hf:.2e}\n"
+            f"|h-p| = {diff_hp:.2e}\n"
+            f"|p-f| = {diff_pf:.2e}"
+        )
+
+        # Ajuste de altura alternada para as caixas de texto
+        y_topo_ponto = max(y_f, y_p, y_h)
+
+        if rotulo == "Centro":
+            # Caixa do centro posicionada com deslocamento controlado
+            y_texto = y_topo_ponto + 0.12 * amplitude_y
+        else:
+            # Caixas das pontas levemente mais altas
+            y_texto = y_topo_ponto + 0.18 * amplitude_y
+
+        ax.annotate(
+            texto_diff,
+            xy=(x_eval, y_topo_ponto),
+            xytext=(x_eval, y_texto),
+            bbox=dict(boxstyle="round,pad=0.3", fc="white", ec=cor, alpha=0.9),
+            arrowprops=dict(
+                arrowstyle="->", color=cor, lw=1, connectionstyle="arc3"
+            ),
+            ha="center",
+            fontsize=8,
+        )
+
+    ax.legend(loc="upper left")
+    ax.set_title(
+        f"Interpolação por Exponencial (b*={b_otimo:.5f}, n={n})\nComparações em x_inicio, x_centro e x_fim",
+        pad=15,
+    )
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.grid(True)
+    plt.tight_layout()
     plt.show()
 
 
