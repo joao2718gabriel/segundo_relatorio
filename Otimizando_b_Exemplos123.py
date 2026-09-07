@@ -102,9 +102,9 @@ def f(x):
             Essa funcao calcula e retorna o
             valor de f no ponto x
     '''
-    return 1/(x**2+1) #Para o exemplo 1
+    #return 1/(x**2+1) #Para o exemplo 1
     # return np.e**(np.sin(x)) #Para o exemplo 2
-    #return np.log(x**2+1) #Para o exemplo 3
+    return np.log(x**2+1) #Para o exemplo 3
 
 def g(x,a,b):
     '''
