@@ -92,6 +92,8 @@ def Otimizando_b(vetor_x,vetor_f,inf_f,a):
         resultado = minimize(funcao_objetivo, b0, bounds=limites, method='L-BFGS-B')
         pontos_otimo.append(resultado.x[0])
     pontos_otimo=np.array(pontos_otimo)
+
+    print(f"Para n={n-1}, temos os valores de b otimo:{pontos_otimo}")
     return np.median(pontos_otimo)
 
 
